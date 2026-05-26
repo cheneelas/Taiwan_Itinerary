@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taiwan Trip · Jun 7–13</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root {
+    --bg: #f7f4ef;
+    --card: #ffffff;
+    --ink: #1a1714;
+    --ink2: #5a5450;
+    --ink3: #9c948e;
+    --accent: #c8473a;
+    --accent2: #2b6cb0;
+    --gold: #b07d2e;
+    --green: #2d6a4f;
+    --border: rgba(26,23,20,0.10);
+    --radius: 14px;
+    --shadow: 0 2px 20px rgba(26,23,20,0.07);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.6; }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--ink); color: #f7f4ef;
+    padding: 60px 24px 48px; text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 120%, rgba(200,71,58,0.28) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: rgba(247,244,239,0.5); margin-bottom: 12px; font-weight: 300; }
+  .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(34px, 6vw, 60px); font-weight: 700; line-height: 1.1; letter-spacing: -1px; margin-bottom: 16px; }
+  .hero-title .hi { color: var(--accent); }
+  .hero-meta { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; font-size: 13px; color: rgba(247,244,239,0.6); margin-bottom: 24px; }
+  .hero-meta .sep { opacity: 0.3; }
+  .hotel-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(247,244,239,0.08); border: 1px solid rgba(247,244,239,0.15); border-radius: 30px; padding: 8px 18px; font-size: 13px; color: rgba(247,244,239,0.75); }
+
+  /* ── LEGEND ── */
+  .legend-bar { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; padding: 14px 24px; background: var(--ink); border-top: 1px solid rgba(247,244,239,0.08); }
+  .lpill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 20px; font-size: 11px; font-weight: 500; letter-spacing: .3px; }
+  .lpill-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .lp-tour  { background: rgba(45,106,79,0.25);  color: #6fcf97; }
+  .lp-diy   { background: rgba(43,108,176,0.25); color: #74b9ff; }
+  .lp-dep   { background: rgba(176,125,46,0.2);  color: #f6d270; }
+
+  /* ── CONTAINER ── */
+  .container { max-width: 740px; margin: 0 auto; padding: 36px 18px 80px; }
+
+  /* ── DAY CARD ── */
+  .day-card {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    margin-bottom: 28px; overflow: hidden; border: 1px solid var(--border);
+    animation: fadeUp .45s ease both;
+  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  .day-card:nth-child(1){animation-delay:.05s} .day-card:nth-child(2){animation-delay:.10s}
+  .day-card:nth-child(3){animation-delay:.15s} .day-card:nth-child(4){animation-delay:.20s}
+  .day-card:nth-child(5){animation-delay:.25s} .day-card:nth-child(6){animation-delay:.30s}
+  .day-card:nth-child(7){animation-delay:.35s}
+
+  /* card header */
+  .card-header { display: flex; align-items: flex-start; gap: 14px; padding: 20px 22px 16px; border-bottom: 1px solid var(--border); }
+  .date-block { min-width: 50px; height: 54px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+  .db-tour  { background: #e8f5ee; } .db-diy { background: #e8f0fb; } .db-trans { background: #fdf3e3; }
+  .db-month { font-size: 10px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+  .db-tour .db-month { color: #2d6a4f; } .db-diy .db-month { color: #1e4d8c; } .db-trans .db-month { color: #8a5a0a; }
+  .db-day { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; line-height: 1; }
+  .db-tour .db-day { color: #1a4a30; } .db-diy .db-day { color: #1a3a6e; } .db-trans .db-day { color: #6b4209; }
+  .card-header-info { flex: 1; }
+  .card-dateline { font-size: 11px; color: var(--ink3); margin-bottom: 3px; display: flex; align-items: center; gap: 7px; }
+  .type-pill { display: inline-block; font-size: 10px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; padding: 2px 8px; border-radius: 20px; }
+  .pill-tour { background: #c8f2d8; color: #1a4a30; } .pill-diy { background: #cce0ff; color: #1a3a6e; } .pill-fixed { background: #ffe5b0; color: #6b4209; }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 600; line-height: 1.25; }
+  .card-sub { font-size: 12px; color: var(--ink3); margin-top: 3px; }
+
+  /* fixed notice */
+  .fixed-notice { display: flex; align-items: center; gap: 8px; padding: 9px 22px; background: #fffbf0; border-bottom: 1px solid #f0e4c0; font-size: 12px; color: #8a5a0a; }
+
+  /* ── MAP SECTION ── */
+  .map-section { border-bottom: 1px solid var(--border); }
+  .map-label { padding: 10px 22px 0; display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; color: var(--ink3); }
+  .map-label svg { opacity: 0.5; }
+  .map-wrap { height: 230px; position: relative; }
+  .map-wrap .leaflet-container { height: 100%; width: 100%; font-family: 'DM Sans', sans-serif; }
+  .map-key { display: flex; gap: 12px; flex-wrap: wrap; padding: 8px 22px 10px; background: #fafaf8; }
+  .mk-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink3); }
+  .mk-dot { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0; }
+
+  /* ── STOPS ── */
+  .stops { padding: 16px 22px 20px; }
+  .stop { display: flex; gap: 12px; margin-bottom: 18px; }
+  .stop:last-child { margin-bottom: 0; }
+  .stop-spine { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 20px; padding-top: 3px; }
+  .stop-num { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; }
+  .sn-main   { background: var(--accent2); }
+  .sn-food   { background: var(--accent); }
+  .sn-note   { background: var(--gold); }
+  .sn-end    { background: var(--green); }
+  .sn-hotel  { background: var(--ink); }
+  .stop-line { width: 1.5px; flex: 1; margin-top: 4px; background: var(--border); }
+  .stop-body { flex: 1; min-width: 0; }
+  .stop-time { font-size: 11px; font-weight: 500; letter-spacing: .3px; color: var(--ink3); margin-bottom: 2px; text-transform: uppercase; }
+  .stop-name { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 3px; line-height: 1.3; }
+  .stop-desc { font-size: 13px; color: var(--ink2); line-height: 1.6; }
+  .tip { display: flex; align-items: flex-start; gap: 6px; margin-top: 6px; padding: 6px 10px; font-size: 12px; line-height: 1.5; border-radius: 0 6px 6px 0; }
+  .tip-blue  { background: #eef4ff; border-left: 3px solid var(--accent2); color: #1e4d8c; }
+  .tip-amber { background: #fdf8ed; border-left: 3px solid var(--gold);    color: #6b4209; }
+  .tip-green { background: #edf7f0; border-left: 3px solid var(--green);   color: #1a4a30; }
+
+  /* footer */
+  .footer { text-align: center; padding: 28px 24px; font-size: 13px; color: var(--ink3); border-top: 1px solid var(--border); max-width: 740px; margin: 0 auto; }
+
+  @media(max-width:520px){
+    .hero{padding:44px 16px 38px} .container{padding:24px 12px 60px}
+    .card-header{padding:16px 16px 12px} .stops{padding:14px 16px 16px}
+    .map-label,.map-key{padding-left:16px;padding-right:16px}
+    .fixed-notice{padding:9px 16px}
+  }
+  @media print{ body{background:#fff} .day-card{box-shadow:none;page-break-inside:avoid} .hero::before{display:none} }
+
+  /* Leaflet custom markers */
+  .lf-marker {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff;
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+  }
+  .lf-hotel  { background: #1a1714; }
+  .lf-main   { background: #2b6cb0; }
+  .lf-food   { background: #c8473a; }
+  .lf-note   { background: #b07d2e; }
+  .lf-end    { background: #2d6a4f; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <p class="hero-eyebrow">Travel Itinerary</p>
+  <h1 class="hero-title">Taiwan<span class="hi">,</span> <span style="color:rgba(247,244,239,.65)">June</span> <span class="hi">7–13</span></h1>
+  <div class="hero-meta">
+    <span>7 Days</span><span class="sep">·</span>
+    <span>Taipei · Taichung · North Coast</span>
+  </div>
+  <div class="hotel-badge">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Xiemen Relite Hotel · 1 Wanhua District, Taipei
+  </div>
+</header>
+<div class="legend-bar">
+  <span class="lpill lp-tour"><span class="lpill-dot" style="background:#6fcf97"></span>Fixed Tour</span>
+  <span class="lpill lp-diy"><span class="lpill-dot"  style="background:#74b9ff"></span>DIY / Self-guided</span>
+  <span class="lpill lp-dep"><span class="lpill-dot"  style="background:#f6d270"></span>Transit / Arrival</span>
+</div>
+
+<main class="container">
+
+  <!-- ═══════════════════ JUNE 7 ═══════════════════ -->
+  <article class="day-card">
+    <div class="card-header">
+      <div class="date-block db-diy"><span class="db-month">Jun</span><span class="db-day">7</span></div>
+      <div class="card-header-info">
+        <div class="card-dateline">Saturday, June 7 <span class="type-pill pill-diy">DIY</span></div>
+        <h2 class="card-title">Arrival + Taipei City Tour</h2>
+        <p class="card-sub">Xinyi District · 15 min from hotel by MRT Blue Line</p>
+      </div>
+    </div>
+
+    <div class="map-section">
+      <p class="map-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Today's Route</p>
+      <div class="map-wrap" id="map-jun7"></div>
+      <div class="map-key" id="key-jun7"></div>
+    </div>
+
+    <div class="stops">
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-note">✈</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">2:00 AM</div>
+          <div class="stop-name">Arrival — Taoyuan International Airport</div>
+          <div class="stop-desc">Take the Taoyuan Airport MRT (40 min) to the hotel, or a taxi (~TWD 1,200). Check in and rest — city tour starts at 8 AM.</div>
+          <div class="tip tip-amber">💡 MRT doesn't run at 2 AM — taxi only. Book via Taiwan Taxi app or arrange with hotel.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-food">☕</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">8:00 AM · Breakfast</div>
+          <div class="stop-name">Breakfast near Ximending</div>
+          <div class="stop-desc">Traditional Taiwanese breakfast — soy milk (豆漿) with fried dough, or egg crepe (蛋餅). Then MRT Blue Line: Ximen → Sun Yat-sen Memorial Hall (4 stops, ~12 min).</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">1</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">9:00 AM · ~1 hr · Free</div>
+          <div class="stop-name">44 South Military Village</div>
+          <div class="stop-desc">Former military village now a cultural park. The low wooden Japanese-era houses frame Taipei 101 dramatically behind them — one of the city's best contrast photos. Opens Tue–Sun 9 AM.</div>
+          <div class="tip tip-blue">📸 Stand near the entrance facing southeast for the 101 backdrop shot.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">2</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">10:15 AM · ~1.5 hrs</div>
+          <div class="stop-name">Taipei 101 Observatory</div>
+          <div class="stop-desc">Walk 5 min from the Village. 89F indoor + 91F outdoor decks with 360° city views. See the famous 660-tonne damper ball inside.</div>
+          <div class="tip tip-blue">🎟️ ~TWD 600/person · Buy tickets online at taipei-101.com.tw to skip queues.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">3</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">12:00 PM · ~30 min</div>
+          <div class="stop-name">Rainbow Crosswalk — Taipei City Hall</div>
+          <div class="stop-desc">10 min walk north. Rainbow-painted pedestrian crossings — iconic photo spot, especially in the morning light.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">4</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">12:30 PM · ~2 hrs</div>
+          <div class="stop-name">Xinyi District — Lunch & Explore</div>
+          <div class="stop-desc">Malls, rooftop gardens, cafés, and street food all within the Taipei 101 block. Grab lunch here and browse at your own pace.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-food">🍶</div></div>
+        <div class="stop-body">
+          <div class="stop-time">6:30 PM · Dinner</div>
+          <div class="stop-name">Takemura Izakaya</div>
+          <div class="stop-desc">Japanese-style bar food — yakitori, cold beer, edamame. A great way to celebrate Day 1. Reserve a table if possible.</div>
+          <div class="tip tip-amber">🌙 Early bedtime recommended — North Coast tour leaves at 7:30 AM tomorrow.</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ═══════════════════ JUNE 8 ═══════════════════ -->
+  <article class="day-card">
+    <div class="card-header">
+      <div class="date-block db-tour"><span class="db-month">Jun</span><span class="db-day">8</span></div>
+      <div class="card-header-info">
+        <div class="card-dateline">Sunday, June 8 <span class="type-pill pill-tour">FIXED TOUR</span></div>
+        <h2 class="card-title">North Coast Tour</h2>
+        <p class="card-sub">7:30 AM – 7:30 PM · Shifen · Jiufen · Yehliu</p>
+      </div>
+    </div>
+    <div class="fixed-notice">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Fixed tour — confirm pickup with operator. Bring: cash, rain jacket, comfortable shoes.
+    </div>
+
+    <div class="map-section">
+      <p class="map-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Tour Route — Northeast Coast</p>
+      <div class="map-wrap" id="map-jun8"></div>
+      <div class="map-key" id="key-jun8"></div>
+    </div>
+
+    <div class="stops">
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-note">↑</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">7:30 AM</div>
+          <div class="stop-name">Depart Hotel</div>
+          <div class="stop-desc">Meet your guide at the agreed pickup point. Have breakfast first — it's a full 12-hour day.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">1</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">~9:30 AM · ~1.5 hrs</div>
+          <div class="stop-name">Shifen — Sky Lantern + Waterfall</div>
+          <div class="stop-desc">Write wishes on a sky lantern and release it over the mountain valley. Then walk to Shifen Waterfall — Taiwan's widest cascade, often called the "mini-Niagara."</div>
+          <div class="tip tip-blue">🏮 Lantern launch ~TWD 200 · Waterfall opens 9 AM.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">2</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">~12:00 PM · ~2 hrs</div>
+          <div class="stop-name">Jiufen Old Street</div>
+          <div class="stop-desc">Stone staircases, red paper lanterns, ocean views, and teahouses — the hilltop town that inspired <em>Spirited Away</em>. Great souvenir shopping and local snacks (taro balls, fish balls).</div>
+          <div class="tip tip-green">🛍️ Cheaper souvenirs here than in Taipei city.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">3</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">~3:00 PM · ~30 min</div>
+          <div class="stop-name">Golden Waterfall</div>
+          <div class="stop-desc">Pyrite-rich mine runoff stains the rocks a golden-orange. Roadside viewpoint — no hiking needed. Stunning color contrast against the green hills.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">4</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">~3:30 PM · ~45 min</div>
+          <div class="stop-name">Yin Yang Sea + 13 Levels Ruins</div>
+          <div class="stop-desc">The bay's half-blue, half-orange water from copper mine drainage is a surreal natural sight. Nearby, the abandoned smelter ruins cling dramatically to the hillside above.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">5</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">~4:45 PM · ~1 hr</div>
+          <div class="stop-name">Yehliu Geopark</div>
+          <div class="stop-desc">Otherworldly coastline full of mushroom rocks and the iconic Queen's Head formation. Walk the 1.7 km coastal trail.</div>
+          <div class="tip tip-blue">🎟️ Entry ~TWD 120 · Stay with the tour group for timing.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-end">↩</div></div>
+        <div class="stop-body">
+          <div class="stop-time">7:30 PM</div>
+          <div class="stop-name">Return to Taipei</div>
+          <div class="stop-desc">Tour drops you at the hotel area. Grab a relaxed dinner at Ximending.</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ═══════════════════ JUNE 9 ═══════════════════ -->
+  <article class="day-card">
+    <div class="card-header">
+      <div class="date-block db-diy"><span class="db-month">Jun</span><span class="db-day">9</span></div>
+      <div class="card-header-info">
+        <div class="card-dateline">Monday, June 9 <span class="type-pill pill-diy">DIY</span></div>
+        <h2 class="card-title">Yangmingshan + Tamsui</h2>
+        <p class="card-sub">Volcanic highlands in the morning · Riverside sunset town in the afternoon</p>
+      </div>
+    </div>
+
+    <div class="map-section">
+      <p class="map-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Today's Route</p>
+      <div class="map-wrap" id="map-jun9"></div>
+      <div class="map-key" id="key-jun9"></div>
+    </div>
+
+    <div class="stops">
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-note">↑</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">6:30 AM · Early start</div>
+          <div class="stop-name">Depart — MRT to Jiantan, then Bus 108</div>
+          <div class="stop-desc">MRT Red Line → Jiantan station, then Bus 108 up the mountain (~40 min to Qingtiangang). Must arrive before fog rolls in.</div>
+          <div class="tip tip-blue">🚌 Bus 108 from Jiantan Exit 1 · Every 15–20 min · TWD 15 fare.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">1</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">8:00 AM · ~1.5 hrs · Free</div>
+          <div class="stop-name">Qingtiangang Grassland</div>
+          <div class="stop-desc">Wide highland meadow in Yangmingshan NP with free-roaming water buffalo. Easy 45-min flat loop with panoramic views of Taipei below. Go early — fog rolls in by 10 AM.</div>
+          <div class="tip tip-amber">☀️ No shade on the grassland — hat, sunscreen, and water are essential.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">2</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">10:00 AM · ~45 min · Free</div>
+          <div class="stop-name">Xiaoyoukeng Fumaroles (Tiaoshi Bus Stop)</div>
+          <div class="stop-desc">Hop off at Xiaoyoukeng for active sulfur steam vents and bubbling volcanic mud — rare to see this close anywhere in Asia. Strong smell but a stunning surreal landscape.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-food">🍽</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">11:30 AM · Transit + Lunch</div>
+          <div class="stop-name">Bus down → MRT Red Line → Tamsui</div>
+          <div class="stop-desc">Bus back to Jiantan, MRT to Tamsui (end of line, ~40 min). Lunch along the riverfront — try A-gei (stuffed tofu with noodles), Tamsui's signature snack.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">3</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">1:30 PM · ~1.5 hrs</div>
+          <div class="stop-name">Tamsui Old Street</div>
+          <div class="stop-desc">Historic riverside boulevard with food stalls and colonial-era buildings. Visit Old Fort San Domingo for harbor views. Try: iron eggs (滷蛋) and fish crackers.</div>
+          <div class="tip tip-green">🥚 A-gei stuffed tofu ~TWD 30 each — the must-eat Tamsui snack.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">4</div></div>
+        <div class="stop-body">
+          <div class="stop-time">4:00 PM · ~2.5 hrs · Stay for sunset</div>
+          <div class="stop-name">Tamsui Fisherman's Wharf — Lover's Bridge</div>
+          <div class="stop-desc">Bus 26 or water taxi (~20 min) to the wharf. Walk the white arch Lover's Bridge as the sun sinks into the Taiwan Strait — one of Taiwan's most beautiful sunsets.</div>
+          <div class="tip tip-blue">🌅 Sunset ~7 PM in June · Arrive by 5:30 PM for a good spot on the bridge.</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ═══════════════════ JUNE 10 ═══════════════════ -->
+  <article class="day-card">
+    <div class="card-header">
+      <div class="date-block db-tour"><span class="db-month">Jun</span><span class="db-day">10</span></div>
+      <div class="card-header-info">
+        <div class="card-dateline">Tuesday, June 10 <span class="type-pill pill-tour">FIXED TOUR</span></div>
+        <h2 class="card-title">Taichung Tour</h2>
+        <p class="card-sub">7:30 AM – 7:30 PM · ~180 km south of Taipei</p>
+      </div>
+    </div>
+    <div class="fixed-notice">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Fixed tour — meet your guide at 7:30 AM. Bring layers; Taichung is slightly warmer than Taipei.
+    </div>
+
+    <div class="map-section">
+      <p class="map-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Tour Stops — Taichung City</p>
+      <div class="map-wrap" id="map-jun10"></div>
+      <div class="map-key" id="key-jun10"></div>
+    </div>
+
+    <div class="stops">
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-note">↑</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">7:30 AM</div>
+          <div class="stop-name">Depart from Taipei</div>
+          <div class="stop-desc">~2.5 hr drive south to Taichung. Relax and enjoy the scenery as Taipei's mountains give way to central Taiwan's plains.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">1</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">~10:30 AM</div>
+          <div class="stop-name">Meteor Garden Filming Location</div>
+          <div class="stop-desc">Iconic campus used in the hit Taiwanese drama. Striking modern architecture and manicured gardens — great for themed photos.</div>
+          <div class="tip tip-blue">🎬 Confirm exact spot with your tour operator.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">2</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">~12:30 PM · ~1 hr · Free</div>
+          <div class="stop-name">Rainbow Village</div>
+          <div class="stop-desc">Every surface painted in vivid colors and whimsical murals by one elderly soldier to save it from demolition. Endlessly photogenic. Tue–Sun 9 AM–5 PM.</div>
+          <div class="tip tip-green">🎨 Spend 45–60 min · Look for the artist's hand-written postcards near the entrance.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">3</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">~3:00 PM · ~1.5 hrs</div>
+          <div class="stop-name">Zhongshe Flower Market</div>
+          <div class="stop-desc">Rolling hillside fields of sunflowers, dahlias, and wildflowers at peak summer bloom. Ideal for wide-angle photography in the golden afternoon light.</div>
+          <div class="tip tip-blue">🌻 Entry ~TWD 100–150 · Late afternoon = best golden-hour light for photos.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-end">↩</div></div>
+        <div class="stop-body">
+          <div class="stop-time">~5:00 PM · Arrive back ~7:30 PM</div>
+          <div class="stop-name">Return to Taipei</div>
+          <div class="stop-desc">Rest up on the coach ride home. Dinner in Ximending when you're back.</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ═══════════════════ JUNE 11 ═══════════════════ -->
+  <article class="day-card">
+    <div class="card-header">
+      <div class="date-block db-diy"><span class="db-month">Jun</span><span class="db-day">11</span></div>
+      <div class="card-header-info">
+        <div class="card-dateline">Wednesday, June 11 <span class="type-pill pill-diy">DIY</span></div>
+        <h2 class="card-title">Wanhua Heritage + Beitou Hot Springs</h2>
+        <p class="card-sub">Morning: Walk from hotel · Afternoon: 35 min by MRT to Beitou</p>
+      </div>
+    </div>
+
+    <div class="map-section">
+      <p class="map-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Today's Route — Two Areas</p>
+      <div class="map-wrap" id="map-jun11"></div>
+      <div class="map-key" id="key-jun11"></div>
+    </div>
+
+    <!-- MORNING SECTION -->
+    <div style="padding:14px 22px 0;"><p style="font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;color:var(--accent2);">☀️ Morning — Wanhua &amp; Datong (walkable from hotel)</p></div>
+    <div class="stops" style="padding-bottom:0;">
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">1</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">9:00 AM · ~1 hr · Free · 5 min walk</div>
+          <div class="stop-name">Longshan Temple (龍山寺)</div>
+          <div class="stop-desc">One of Taiwan's most spectacular and active temples — 18th-century, incense smoke curling through golden shrines, locals chanting and praying. Buddhism, Taoism, and folk religion all coexist here. Open 6 AM–10 PM. Visiting in the morning means fewer tourists and more authentic atmosphere.</div>
+          <div class="tip tip-blue">🙏 Grab free temple fortune sticks (擲筊) for fun · Dress modestly, shoulders covered.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">2</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">10:15 AM · ~30 min · Free · 2 min walk</div>
+          <div class="stop-name">Huaxi Street Night Market (華西街)</div>
+          <div class="stop-desc">Right next to Longshan Temple, Huaxi (also called "Snake Alley") is one of Taiwan's oldest night markets. In the daytime it's calm and great for browsing herbal medicine stalls, traditional snacks, and local Taiwanese street food.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">3</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">11:00 AM · ~1.5 hrs · Bus from hotel · 15 min</div>
+          <div class="stop-name">Dihua Old Street (迪化街)</div>
+          <div class="stop-desc">A beautifully preserved 19th-century trading street in the Dadaocheng district — the oldest commercial area in Taipei. Baroque and Minnan-style colonial shop fronts house traditional Chinese medicine stores, dried goods merchants, tea shops, fabric markets, and now trendy cafés. Fascinating contrast of old and new.</div>
+          <div class="tip tip-green">🛒 Buy: premium teas, traditional Chinese herbs, dried fruit snacks, local rice crackers · Prices better than elsewhere.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">4</div></div>
+        <div class="stop-body">
+          <div class="stop-time">12:30 PM · ~45 min · 5 min walk from Dihua</div>
+          <div class="stop-name">Dadaocheng Wharf (大稻埕碼頭)</div>
+          <div class="stop-desc">A short walk from Dihua Street brings you to the riverside wharf. Beautiful views across the Danshui River, with old red-brick warehouses behind you. A peaceful lunch spot with riverside cafés and picnic-friendly benches. Great breeze off the river.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIVIDER -->
+    <div style="margin:0 22px;border-top:1px dashed var(--border);padding:10px 0 0;">
+      <p style="font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);padding-bottom:10px;">♨️ Afternoon — Beitou Hot Springs (MRT Red Line, 35 min)</p>
+    </div>
+    <div class="stops">
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-note">🚇</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">1:30 PM · Transit</div>
+          <div class="stop-name">MRT to Xinbeitou Station</div>
+          <div class="stop-desc">From Zhongshan MRT, take the Red Line north to Beitou, then transfer to the Xinbeitou Branch Line (1 stop). Total ~35 min from the hotel area. Simple and direct — no buses needed.</div>
+          <div class="tip tip-blue">🚇 MRT fare ~TWD 40 one-way · Xinbeitou Branch Line train is separate — note the platform sign.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">5</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">2:30 PM · ~1 hr · Free · Closed Mondays</div>
+          <div class="stop-name">Beitou Hot Spring Museum</div>
+          <div class="stop-desc">Housed in a stately 1913 Japanese bathhouse building surrounded by trees and a stream. Learn the full history of Beitou's hot spring culture through well-presented exhibits. Remove shoes at the entrance (swap for sandals provided). Free entry.</div>
+          <div class="tip tip-green">🏛️ Open Tue–Sun 10 AM–6 PM · Free entry · Takes 30–45 min · A very peaceful, beautiful building.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">6</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">3:30 PM · ~30 min · Free · 10 min walk</div>
+          <div class="stop-name">Thermal Valley (地熱谷)</div>
+          <div class="stop-desc">A striking, vivid jade-green pool of naturally boiling water (~98°C) that steams dramatically in the open air. The name in Chinese means "Hell Valley" — fitting! Surrounded by trees, with steam rolling across the water's surface. Short visit but incredibly memorable. Free entry.</div>
+          <div class="tip tip-amber">⚠️ Do not touch the water — it's near boiling. Stay behind the safety railings at all times.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">7</div></div>
+        <div class="stop-body">
+          <div class="stop-time">4:15 PM · ~1.5 hrs · Public = Free</div>
+          <div class="stop-name">Hot Spring Soak (溫泉) — Public Foot Bath or Onsen</div>
+          <div class="stop-desc">Several options along the Beitou stream: public outdoor foot-soaking pools are completely free and a great experience. Paid indoor private onsen facilities nearby for a full-body soak. The sodium bicarbonate water is known as "beauty water" — famously smooth on skin.</div>
+          <div class="tip tip-green">♨️ Public foot soak: FREE · Private onsen room: ~TWD 200–500/hr · Bring flip-flops and a small towel.</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ═══════════════════ JUNE 12 ═══════════════════ -->
+  <article class="day-card">
+    <div class="card-header">
+      <div class="date-block db-diy"><span class="db-month">Jun</span><span class="db-day">12</span></div>
+      <div class="card-header-info">
+        <div class="card-dateline">Thursday, June 12 <span class="type-pill pill-diy">DIY</span></div>
+        <h2 class="card-title">CKS Memorial + Maokong Tea Country</h2>
+        <p class="card-sub">Last full day · CKS Hall → Maokong Gondola → Ximending final night</p>
+      </div>
+    </div>
+
+    <div class="map-section">
+      <p class="map-label"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Today's Route</p>
+      <div class="map-wrap" id="map-jun12"></div>
+      <div class="map-key" id="key-jun12"></div>
+    </div>
+
+    <div class="stops">
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">1</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">8:45 AM · ~1.5 hrs · Free</div>
+          <div class="stop-name">Chiang Kai-shek Memorial Hall</div>
+          <div class="stop-desc">MRT Blue Line → CKS Memorial Hall Station. Arrive at 9 AM for the Changing of the Guard ceremony — precise, dignified, performed in full ceremonial uniform every hour. The grand white marble hall and Liberty Square are stunning in morning light. Opens 9 AM.</div>
+          <div class="tip tip-blue">⏰ Guard ceremony every hour on the hour · 9 AM is least crowded · Free entry.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-note">🚇</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">10:30 AM · Transit</div>
+          <div class="stop-name">MRT → Taipei Zoo → Maokong Gondola</div>
+          <div class="stop-desc">MRT Blue Line → transfer to Brown Line at Daan Station → Taipei Zoo (end). Gondola base station is outside the exit. Queue for the crystal glass-bottom cabin early.</div>
+          <div class="tip tip-blue">💎 Crystal cabin = glass floor looking straight down · 1-in-4 gondolas · Worth the 15 min extra wait.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">2</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">11:30 AM · ~1 hr</div>
+          <div class="stop-name">Gondola Stop 3 — Zhinan Temple</div>
+          <div class="stop-desc">Exit at Station 3. Multi-tiered hilltop temple rising dramatically up the forested mountain — Buddhism, Taoism, and Confucianism all in one. Sweeping valley views and hundreds of hanging wish ornaments. Open 8 AM–8 PM.</div>
+          <div class="tip tip-blue">🙏 The top tier platform has one of the best views in all of greater Taipei.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-food">🍵</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">1:00 PM · ~1.5 hrs</div>
+          <div class="stop-name">Maokong Village — Tea Farms + Teahouse Lunch</div>
+          <div class="stop-desc">Ride to the top station (Station 4). Hillsides covered in oolong and tieguanyin tea farms. Choose a teahouse terrace for a traditional gongfu tea set lunch with valley views.</div>
+          <div class="tip tip-green">🍵 Gongfu tea set with food ~TWD 300–500/person · The server walks you through the full brewing ritual.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-food">🍦</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">3:00 PM · ~45 min</div>
+          <div class="stop-name">Maokong Yang Tai — Matcha Ice Cream</div>
+          <div class="stop-desc">Famous dessert stop near the top station. Rich matcha soft-serve made from fresh Maokong leaves, with the tea farm terraces all around you. Also sells packaged tea — a perfect last-minute souvenir.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-main">5</div></div>
+        <div class="stop-body">
+          <div class="stop-time">5:00 PM · ~3 hrs · Final Night</div>
+          <div class="stop-name">Ximending — Souvenirs + Last Dinner</div>
+          <div class="stop-desc">Gondola down, MRT to Ximen — steps from the hotel. Spend your last evening shopping for pineapple cakes, sun cakes, tea sets, and face masks. Dinner from the night market stalls: giant crispy chicken, oyster vermicelli, bubble tea, scallion pancake. Pack tonight!</div>
+          <div class="tip tip-amber">🧳 Pack bags tonight · Set two alarms · Book your 12:30 AM airport taxi in advance.</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ═══════════════════ JUNE 13 ═══════════════════ -->
+  <article class="day-card">
+    <div class="card-header">
+      <div class="date-block db-trans"><span class="db-month">Jun</span><span class="db-day">13</span></div>
+      <div class="card-header-info">
+        <div class="card-dateline">Friday, June 13 <span class="type-pill pill-fixed">DEPARTURE</span></div>
+        <h2 class="card-title">Departure — 3:00 AM Flight</h2>
+        <p class="card-sub">Leave hotel by 12:30–1:00 AM · Allow 2+ hours at Taoyuan Airport</p>
+      </div>
+    </div>
+    <div class="stops">
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-note">📦</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">June 12 · 9:00 PM</div>
+          <div class="stop-name">Pack bags &amp; prepare</div>
+          <div class="stop-desc">Get everything ready the night before. Check luggage allowance — pineapple cakes and packaged tea are fine in carry-on. Check in online and set two alarms.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-note">🚕</div><div class="stop-line"></div></div>
+        <div class="stop-body">
+          <div class="stop-time">12:30 AM</div>
+          <div class="stop-name">Depart Hotel — Taxi to Taoyuan Airport</div>
+          <div class="stop-desc">MRT doesn't run at this hour — pre-booked taxi or private transfer only. ~40–50 min drive, ~TWD 1,200–1,500. Allow 2.5 hrs before your 3 AM flight.</div>
+          <div class="tip tip-amber">🚕 Book via Taiwan Taxi app or ask hotel concierge to arrange the night before.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="stop-spine"><div class="stop-num sn-end">✈</div></div>
+        <div class="stop-body">
+          <div class="stop-time">3:00 AM</div>
+          <div class="stop-name">Departure — Safe travels!</div>
+          <div class="stop-desc">再見！(Zàijiàn!) — Until next time, Taiwan. 🇹🇼</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+</main>
+<footer class="footer">
+  <p>Taiwan Trip · June 7–13 &nbsp;·&nbsp; <strong>Xiemen Relite Hotel, 1 Wanhua District, Taipei</strong></p>
+  <p style="margin-top:5px;">All times approximate. Confirm tour pickups with your operator. Have an amazing trip!</p>
+</footer>
+
+<script>
+// ── Map data ──────────────────────────────────────────────────────────────
+const MAPS = {
+  'map-jun7': {
+    center: [25.037, 121.546], zoom: 14,
+    stops: [
+      { lat:25.042,   lng:121.499, label:'Hotel (Wanhua)', type:'hotel' },
+      { lat:25.0315,  lng:121.5619, label:'① 44 South Military Village', type:'main' },
+      { lat:25.0340,  lng:121.5645, label:'② Taipei 101', type:'main' },
+      { lat:25.0407,  lng:121.5677, label:'③ Rainbow Crosswalk', type:'main' },
+      { lat:25.0414,  lng:121.5650, label:'④ Takemura Izakaya', type:'food' },
+    ]
+  },
+  'map-jun8': {
+    center: [25.127, 121.762], zoom: 11,
+    stops: [
+      { lat:25.0490,  lng:121.7875, label:'① Shifen Waterfall', type:'main' },
+      { lat:25.1098,  lng:121.8452, label:'② Jiufen Old Street', type:'main' },
+      { lat:25.1171,  lng:121.8615, label:'③ Golden Waterfall', type:'main' },
+      { lat:25.1183,  lng:121.8647, label:'④ Yin Yang Sea / 13 Levels', type:'main' },
+      { lat:25.2048,  lng:121.6896, label:'⑤ Yehliu Geopark', type:'main' },
+    ]
+  },
+  'map-jun9': {
+    center: [25.16, 121.51], zoom: 12,
+    stops: [
+      { lat:25.042,   lng:121.499, label:'Hotel (Wanhua)', type:'hotel' },
+      { lat:25.1658,  lng:121.5754, label:'① Qingtiangang Grassland', type:'main' },
+      { lat:25.155,   lng:121.560,  label:'② Xiaoyoukeng Fumaroles', type:'main' },
+      { lat:25.1677,  lng:121.4457, label:'③ Tamsui Old Street', type:'main' },
+      { lat:25.1830,  lng:121.4121, label:"④ Fisherman's Wharf", type:'main' },
+    ]
+  },
+  'map-jun10': {
+    center: [24.16, 120.64], zoom: 12,
+    stops: [
+      { lat:24.155,   lng:120.630,  label:'① Meteor Garden Location', type:'main' },
+      { lat:24.1337,  lng:120.6098, label:'② Rainbow Village', type:'main' },
+      { lat:24.255,   lng:120.728,  label:'③ Zhongshe Flower Market', type:'main' },
+    ]
+  },
+  'map-jun11': {
+    center: [25.08, 121.502], zoom: 12,
+    stops: [
+      { lat:25.042,   lng:121.499,  label:'Hotel (Wanhua)', type:'hotel' },
+      { lat:25.0373,  lng:121.4999, label:'① Longshan Temple', type:'main' },
+      { lat:25.0368,  lng:121.4989, label:'② Huaxi Street', type:'main' },
+      { lat:25.0581,  lng:121.5098, label:'③ Dihua Old Street', type:'main' },
+      { lat:25.0625,  lng:121.5075, label:'④ Dadaocheng Wharf', type:'main' },
+      { lat:25.1366,  lng:121.5072, label:'⑤ Beitou Hot Spring Museum', type:'note' },
+      { lat:25.1382,  lng:121.5074, label:'⑥ Thermal Valley', type:'note' },
+      { lat:25.1355,  lng:121.5048, label:'⑦ Hot Spring Soak Area', type:'note' },
+    ]
+  },
+  'map-jun12': {
+    center: [25.00, 121.548], zoom: 13,
+    stops: [
+      { lat:25.042,   lng:121.5077, label:'Hotel / Ximending', type:'hotel' },
+      { lat:25.0355,  lng:121.5202, label:'① CKS Memorial Hall', type:'main' },
+      { lat:24.9968,  lng:121.5768, label:'② Maokong Gondola Base', type:'main' },
+      { lat:24.9798,  lng:121.5866, label:'③ Zhinan Temple', type:'main' },
+      { lat:24.9707,  lng:121.5931, label:'④ Maokong Tea Village', type:'food' },
+      { lat:25.0428,  lng:121.5077, label:'⑤ Ximending (souvenirs)', type:'food' },
+    ]
+  }
+};
+
+const TYPE_COLOR = { hotel:'#1a1714', main:'#2b6cb0', food:'#c8473a', note:'#b07d2e', end:'#2d6a4f' };
+
+function makeIcon(color, label) {
+  return L.divIcon({
+    html: `<div class="lf-marker" style="background:${color}">${label}</div>`,
+    className: '', iconSize:[26,26], iconAnchor:[13,13], popupAnchor:[0,-14]
+  });
+}
+
+function buildMapKey(keyEl, stops) {
+  keyEl.innerHTML = stops.map(s => {
+    const c = TYPE_COLOR[s.type] || '#888';
+    const num = s.label.match(/^[①-⑦]|Hotel/)?.[0] || '•';
+    return `<span class="mk-item"><span class="mk-dot" style="background:${c}">${num === 'H' ? '⌂' : num}</span>${s.label.replace(/^[①-⑦]\s/,'')}</span>`;
+  }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  Object.entries(MAPS).forEach(([id, cfg]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const map = L.map(id, { zoomControl: true, scrollWheelZoom: false, attributionControl: false });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd', maxZoom: 19
+    }).addTo(map);
+    map.setView(cfg.center, cfg.zoom);
+
+    const coords = [];
+    cfg.stops.forEach((s, i) => {
+      const color = TYPE_COLOR[s.type] || '#888';
+      const numLabel = s.type === 'hotel' ? '⌂' : (i).toString();
+      const marker = L.marker([s.lat, s.lng], { icon: makeIcon(color, numLabel) }).addTo(map);
+      marker.bindPopup(`<strong style="font-family:'DM Sans',sans-serif;font-size:13px">${s.label}</strong>`, { maxWidth: 180 });
+      coords.push([s.lat, s.lng]);
+    });
+
+    if (coords.length > 1) {
+      L.polyline(coords, { color: '#2b6cb0', weight: 2, opacity: 0.5, dashArray: '5, 6' }).addTo(map);
+    }
+
+    const keyEl = document.getElementById('key-' + id.replace('map-',''));
+    if (keyEl) buildMapKey(keyEl, cfg.stops);
+  });
+});
+</script>
+</body>
+</html>
